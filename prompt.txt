@@ -1,0 +1,28 @@
+I have attached some engineering drawing PDFs. For each attached drawing, extract the following fields from the title block and generate a Drawing Index report as a PDF using reportlab on A2 landscape paper. Do not assume, infer, or carry forward any data values — every value in the report must be explicitly extractable from the attached PDFs.
+The table has no document-level title or subheader — it is the full content of the page. The table should have the following formatting:
+
+Column headers: white background, black bold text, centered, word wrap permitted
+Section header rows: peach background (hex #FFDAB9), bold text, same column grid as data rows, section name in the GROUP column cell only, all other cells empty
+Data rows: alternating white and light blue (hex #EBF0FA), centered, 6.5pt Helvetica
+All cells: thin gray border, 3pt padding on all sides
+
+The table has the following columns in this order, with the first 13 columns using these approximate widths: PACKAGE # (0.45in), GROUP (1.3in), EXPANSE DOC # (0.6in), PES DOC NUMBER (0.85in), SHT # (0.35in), INSTALL/REMOVAL/VOIDS (0.9in), REV DATE (0.55in), REV (0.35in), DRAWING TITLE (3.2in, left-aligned), SHEET SIZE (0.45in), FILE TYPE (0.4in), DATE RCV'D (0.45in), DWG REVISED THIS SUB (0.55in).
+The remaining columns form a submittal tracking matrix. Each submittal consists of two columns: a submittal column (0.82in, uniform for all submittals) and a REV column (0.30in, uniform for all REV columns). All submittal and REV columns must be the same width. The submittals are: 10% (09/19/25), 30% DETAIL DESIGN (11/17/25), 60% DETAIL DESIGN (02/13/26), 90% IFR (03/31/26), 90% IFC (XX/XX/XX), 100% FINAL RECORD (XX/XX/XX).
+Column extraction rules:
+
+PACKAGE #: leave blank
+GROUP: the section grouping inferred from the drawing title (e.g. "01 - ONE LINE" for one-line diagrams)
+EXPANSE DOC #: leave blank if not present in extracted text
+PES DOC NUMBER: the value of the DRAWING NUMBER field
+SHT #: the sheet number only, no "OF X" notation
+INSTALL/REMOVAL/VOIDS: the word or phrase appearing immediately before the string "ISSUED FOR REVIEW" at the end of the extracted text
+REV DATE: the date associated with the highest revision letter in the drawing history
+REV: the highest revision letter in the drawing history
+DRAWING TITLE: the value of the DRAWING TITLE field
+SHEET SIZE: the value of the DWG SIZE field
+FILE TYPE: "PDF" if GROUP is "BOM", "STUDIES AND REPORTS", or "SPECS"; otherwise "CAD"
+DATE RCV'D: leave blank
+DWG REVISED THIS SUB: leave blank
+
+Submittal matrix rules: place an X in a submittal column if the drawing history contains a revision whose description matches that submittal's percentage. For columns labeled IFR, the description must also contain "ISSUED FOR REVIEW". For columns labeled IFC, the description must also contain "ISSUED FOR CONSTRUCTION". A plain percentage match without IFR/IFC wording satisfies non-IFR/IFC submittal columns only. The REV column for each submittal contains the revision letter of the matching history entry. If no match exists, both the X and REV cells are blank. For the 10% column specifically, also match a history entry containing "PRELIMINARY DESIGN" with no percentage if it is the first revision.
+Group drawings by their GROUP value. Insert a section header row before the first drawing of each group. Output only the PDF.
