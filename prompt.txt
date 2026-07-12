@@ -1,32 +1,59 @@
-I have attached some engineering drawing PDFs. For each attached drawing, extract the following fields from the title block and generate a Drawing Index report as a PDF using reportlab on A2 landscape paper. Do not assume, infer, or carry forward any data values — every value in the report must be explicitly extractable from the attached PDFs.
+For each attached drawing, extract the following fields from the title block and generate a Drawing Index report as a PDF using reportlab on 11×17 landscape paper. Do not assume, infer, or carry forward any data values — every value in the report must be explicitly extractable from the attached PDFs.
+The report has a title "Drawing Index" in 14pt Helvetica Bold, centered, appearing only on the first page above the table. Each page has a centered footer in 8pt Helvetica reading "Page X of Y" where X is the current page number and Y is the total page count, determined via a two-pass build. The table occupies the remaining space on each page, with the column header row repeating on every page.
+The table should have the following formatting:
 
-The table has no document-level title or subheader — it is the full content of the page. The table should have the following formatting:
+Column headers: white background, black bold text, centered, smart word wrap (see rules below)
+Section header rows: peach background (hex #FFDAB9), bold text, same column grid as data rows, section name in the GROUP column cell only, all other cells empty, no word wrap
+Data rows: alternating white and light blue (hex #EBF0FA), centered, except the GROUP and DRAWING TITLE columns which are left-aligned
+Voided drawings: included in their natural group section; drawing number displayed with -VOID appended in the PES DOC NUMBER cell; all non-blank cells in that row rendered with a thin 0.4pt strikethrough line drawn at 40% of the row height (not using ReportLab's built-in <strike> tag)
+All cells: thin gray (#AAAAAA) border, 3pt padding on all sides
+Font size: 5.5pt Helvetica (data) and 5.5pt Helvetica Bold (headers and section headers), consistent throughout. Row heights are single-line for all data and section header rows.
+Page margins: 0.3in on all sides
 
-Column headers: white background, black bold text, centered, word wrap permitted
-Section header rows: peach background (hex #FFDAB9), bold text, same column grid as data rows, section name in the GROUP column cell only, all other cells empty
-Data rows: alternating white and light blue (hex #EBF0FA), centered, 6.5pt Helvetica
-All cells: thin gray border, 3pt padding on all sides
+The table has the following columns in this order with these widths: PACKAGE # (0.58in), GROUP (1.55in), EXPANSE DOC # (0.50in), PES DOC NUMBER (0.95in), SHT # (0.35in), INSTALL/REMOVAL/VOIDS (0.72in), REV DATE (0.55in), REV (0.35in), DRAWING TITLE (3.85in, left-aligned), SHEET SIZE (0.45in), FILE TYPE (0.42in), DATE RCV'D (0.40in), DWG REVISED THIS SUB (0.50in).
+The remaining columns form a submittal tracking matrix. Each submittal consists of two columns: a submittal column (0.60in) and a REV column (0.30in), uniform for all submittals. The submittals are: 10% (09/19/25), 30% DETAIL DESIGN (11/17/25), 60% DETAIL DESIGN (02/13/26), 90% IFR (03/31/26), 90% IFC (XX/XX/XX), 100% FINAL RECORD (XX/XX/XX).
+Column header word wrap rules: All column headers use smart word wrap except PACKAGE # (col 0) and SHT # (col 4) which must never wrap. Smart word wrap obeys these rules:
 
-The table has the following columns in this order, with the first 13 columns using these approximate widths: PACKAGE # (0.45in), GROUP (1.3in), EXPANSE DOC # (0.6in), PES DOC NUMBER (0.85in), SHT # (0.35in), INSTALL/REMOVAL/VOIDS (0.9in), REV DATE (0.55in), REV (0.35in), DRAWING TITLE (3.2in, left-aligned), SHEET SIZE (0.45in), FILE TYPE (0.4in), DATE RCV'D (0.45in), DWG REVISED THIS SUB (0.55in).
-
-The remaining columns form a submittal tracking matrix. Each submittal consists of two columns: a submittal column (0.82in, uniform for all submittals) and a REV column (0.30in, uniform for all REV columns). All submittal and REV columns must be the same width. The submittals are: 10% (09/19/25), 30% DETAIL DESIGN (11/17/25), 60% DETAIL DESIGN (02/13/26), 90% IFR (03/31/26), 90% IFC (XX/XX/XX), 100% FINAL RECORD (XX/XX/XX).
+Wrap only at space characters or at forward slash characters, never mid-word
+A forward slash that falls between two digit characters (i.e. part of a date) is not a wrap point
+When wrapping at a slash, the slash attaches to the end of the preceding token
+Parenthesised groups (including their parentheses) are treated as atomic tokens and never broken across lines
 
 Column extraction rules:
 
 PACKAGE #: leave blank
-GROUP: the section grouping inferred from the drawing title (e.g. "01 - ONE LINE" for one-line diagrams)
+GROUP: determined by drawing number abbreviation per group assignment rules below
 EXPANSE DOC #: leave blank if not present in extracted text
-PES DOC NUMBER: the value of the DRAWING NUMBER field
+PES DOC NUMBER: the value of the DRAWING NUMBER field; if the drawing is voided, append -VOID
 SHT #: the sheet number only, no "OF X" notation
 INSTALL/REMOVAL/VOIDS: the word or phrase appearing immediately before the string "ISSUED FOR REVIEW" at the end of the extracted text
 REV DATE: the date associated with the highest revision letter in the drawing history
 REV: the highest revision letter in the drawing history
 DRAWING TITLE: the value of the DRAWING TITLE field
 SHEET SIZE: the value of the DWG SIZE field
-FILE TYPE: "PDF" if GROUP is "BOM", "STUDIES AND REPORTS", or "SPECS"; otherwise "CAD"
+FILE TYPE: "PDF" if GROUP is "05 - BOM", "14 - STUDIES AND REPORTS", or "16 - SPEC"; otherwise "CAD"
 DATE RCV'D: leave blank
 DWG REVISED THIS SUB: leave blank
 
-Submittal matrix rules: place an X in a submittal column if the drawing history contains a revision whose description matches that submittal's percentage. For columns labeled IFR, the description must also contain "ISSUED FOR REVIEW". For columns labeled IFC, the description must also contain "ISSUED FOR CONSTRUCTION". A plain percentage match without IFR/IFC wording satisfies non-IFR/IFC submittal columns only. The REV column for each submittal contains the revision letter of the matching history entry. If no match exists, both the X and REV cells are blank. For the 10% column specifically, also match a history entry containing "PRELIMINARY DESIGN" with no percentage if it is the first revision.
+Submittal matrix rules: Place an X in a submittal column if the drawing history contains a revision whose description matches that submittal's percentage. For columns labeled IFR, the description must also contain "ISSUED FOR REVIEW". For columns labeled IFC, the description must also contain "ISSUED FOR CONSTRUCTION". A plain percentage match without IFR/IFC wording satisfies non-IFR/IFC submittal columns only. The REV column for each submittal contains the revision letter of the matching history entry. If no match exists, both the X and REV cells are blank. For the 10% column specifically, also match a history entry containing "PRELIMINARY DESIGN" with no percentage if it is the first revision.
+Group assignment rules: Drawing number abbreviations take priority and determine the group definitively. All 17 section headers must appear in the output even if no drawings are assigned to that section. The sections are, in order:
 
-Group drawings by their GROUP value. Insert a section header row before the first drawing of each group. Output only the PDF.
+00 - NOTES & KEY PLAN: drawing number contains "PLN", "LEG", or "NTS" (sub-ordered PLN first, then LEG, then NTS within the group)
+01 - ONE LINE: drawing number contains "EOL"
+02 - THREE LINES: drawing number contains "ETD"
+03 - CONTROL SCHEMATICS: drawing number contains "ESD"
+04 - PANEL SCHEDULES: (abbreviations TBD)
+05 - BOM: drawing number contains "BOM"
+06 - WIRING DIAGRAMS: drawing number contains "EWR"
+07 - COMMUNICATION: drawing number contains "COM"
+08 - PANEL JUNCTION LAYOUTS: drawing number contains "EGA" or "JBX"
+09 - LAYOUTS: drawing number contains "SGA", "CND", "DBK", "GND", "ENC", "LGT", "LAY", or "SCT"
+10 - STEEL STRUCTURES: drawing number contains "STL"
+11 - GRADING: drawing number contains "GRD"
+12 - CABLE/CONDUITS: drawing number contains "CBS"
+13 - NAMEPLATES: drawing number contains "SCH"
+14 - STUDIES AND REPORTS: drawing number contains "CAL"
+15 - FOUNDATIONS: drawing number contains "FDN"
+16 - SPEC: drawing number contains "SPC"
+
+If no abbreviation matches, assign to 09 - LAYOUTS as fallback. Group drawings by their GROUP value and insert a section header row before each group. Within group 00, drawings are sorted by PLN first, then LEG, then NTS. Rows may paginate across pages but each individual row must not be split across a page boundary. Output only the PDF.
